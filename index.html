@@ -1279,15 +1279,22 @@ const allKeys = Object.keys(R).sort();
 const itemList = [];
 renderList();
 
+function matchKey(k, q){
+  if(k.includes(q)) return true;
+  const toks = q.split('_').filter(Boolean);
+  return toks.length > 1 && toks.every(t => k.includes(t));
+}
+
 itemInput.addEventListener('input', () => {
   const v = itemInput.value.trim().toLowerCase();
   matchesEl.innerHTML = '';
   if(!v){ return; }
-  const found = allKeys.filter(k => k.includes(v)).slice(0, 8);
+  const q = v.replace(/\s+/g, '_');
+  const found = allKeys.filter(k => matchKey(k, q)).slice(0, 8);
   for(const k of found){
     const span = document.createElement('span');
     span.textContent = label(k);
-    span.onclick = () => { itemInput.value = k; matchesEl.innerHTML = ''; itemInput.focus(); };
+    span.onclick = () => { itemInput.value = label(k); matchesEl.innerHTML = ''; itemInput.focus(); };
     matchesEl.appendChild(span);
   }
 });
