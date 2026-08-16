@@ -110,6 +110,10 @@
     font-size:11px;
     border-top:1px solid var(--border);
     padding-top:12px;
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:8px;
   }
   .lang-opt{cursor:pointer;}
   .lang-opt:hover{color:var(--fg);}
@@ -146,8 +150,8 @@
 </section>
 
 <footer>
-  powered by werc.<br>
-  lang: <span class="lang-opt active" id="langEn">en</span> / <span class="lang-opt" id="langPt">pt-br</span>
+  <span>powered by werc.</span>
+  <span>lang: <span class="lang-opt active" id="langEn">en</span> / <span class="lang-opt" id="langPt">pt-br</span></span>
 </footer>
 
 <script>
