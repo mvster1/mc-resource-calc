@@ -111,6 +111,9 @@
     border-top:1px solid var(--border);
     padding-top:12px;
   }
+  .lang-opt{cursor:pointer;}
+  .lang-opt:hover{color:var(--fg);}
+  .lang-opt.active{color:var(--acc2);}
 </style>
 </head>
 <body>
@@ -118,32 +121,33 @@
 <h1>mc-resource-calc</h1>
 
 <div id="form">
-  <input id="item" type="text" placeholder="nome do item (ex: iron_pickaxe)" autocomplete="off">
+  <input id="item" type="text" placeholder="item name (e.g. iron_pickaxe)" autocomplete="off">
   <input id="qty" type="number" min="1" value="1">
-  <button type="button" id="calcSingleBtn">calcular</button>
-  <button type="button" id="addBtn" class="secondary">adicionar a lista</button>
+  <button type="button" id="calcSingleBtn">calculate</button>
+  <button type="button" id="addBtn" class="secondary">add to list</button>
 </div>
 <div id="matches"></div>
 <div id="err" class="err"></div>
 
 <section>
-  <h2>lista de itens pra fabricar</h2>
+  <h2 id="listTitle">items to craft</h2>
   <table id="list"><tbody></tbody></table>
-  <div id="list-empty" class="empty">nenhum item na lista ainda.</div>
+  <div id="list-empty" class="empty">no items on the list yet.</div>
   <div class="listActions">
-    <button id="calcBtn" type="button">calcular lista</button>
-    <button id="clearBtn" type="button" class="secondary">limpar lista</button>
+    <button id="calcBtn" type="button">calculate list</button>
+    <button id="clearBtn" type="button" class="secondary">clear list</button>
   </div>
 </section>
 
 <section>
-  <h2>materiais necessarios</h2>
+  <h2 id="rawTitle">required materials</h2>
   <table id="raw"><tbody></tbody></table>
-  <div id="raw-empty" class="empty">nenhum resultado ainda.</div>
+  <div id="raw-empty" class="empty">no results yet.</div>
 </section>
 
 <footer>
   powered by werc.<br>
+  lang: <span class="lang-opt active" id="langEn">en</span> / <span class="lang-opt" id="langPt">pt-br</span>
 </footer>
 
 <script>
@@ -1249,12 +1253,17 @@ function formatQty(qty){
   const stacks = Math.floor(qty / 64);
   const rest = qty % 64;
   if(stacks === 0) return String(qty);
-  const stackLabel = stacks === 1 ? 'pilha' : 'pilhas';
+  const stackLabel = stacks === 1 ? t('stack1') : t('stacks');
   const stackPart = rest === 0 ? `${stacks} ${stackLabel}` : `${stacks} ${stackLabel} + ${rest}`;
   return `${qty} (${stackPart})`;
 }
 
+let lastRaw = null;
+let lastMid = null;
+
 function render(raw, mid){
+  lastRaw = raw;
+  lastMid = mid;
   const rawBody = document.querySelector('#raw tbody');
   rawBody.innerHTML = '';
 
@@ -1270,6 +1279,71 @@ function render(raw, mid){
   }
 }
 
+/* ---------- i18n ---------- */
+const I18N = {
+  en: {
+    placeholder: 'item name (e.g. iron_pickaxe)',
+    calc: 'calculate',
+    add: 'add to list',
+    listTitle: 'items to craft',
+    listEmpty: 'no items on the list yet.',
+    calcList: 'calculate list',
+    clearList: 'clear list',
+    rawTitle: 'required materials',
+    rawEmpty: 'no results yet.',
+    remove: 'remove',
+    errNotFound: 'item "{0}" not found in recipes.',
+    errEmptyList: 'add at least one item to the list before calculating.',
+    stack1: 'stack',
+    stacks: 'stacks'
+  },
+  pt: {
+    placeholder: 'nome do item (ex: iron_pickaxe)',
+    calc: 'calcular',
+    add: 'adicionar a lista',
+    listTitle: 'lista de itens pra fabricar',
+    listEmpty: 'nenhum item na lista ainda.',
+    calcList: 'calcular lista',
+    clearList: 'limpar lista',
+    rawTitle: 'materiais necessarios',
+    rawEmpty: 'nenhum resultado ainda.',
+    remove: 'remover',
+    errNotFound: 'item "{0}" nao encontrado na base de receitas.',
+    errEmptyList: 'adicione ao menos um item na lista antes de calcular.',
+    stack1: 'pilha',
+    stacks: 'pilhas'
+  }
+};
+
+let lang = 'en';
+
+function t(key, ...args){
+  let s = I18N[lang][key] ?? I18N.en[key];
+  args.forEach((a, i) => { s = s.replace('{' + i + '}', a); });
+  return s;
+}
+
+function applyLang(){
+  itemInput.placeholder = t('placeholder');
+  document.getElementById('calcSingleBtn').textContent = t('calc');
+  document.getElementById('addBtn').textContent = t('add');
+  document.getElementById('listTitle').textContent = t('listTitle');
+  document.getElementById('list-empty').textContent = t('listEmpty');
+  document.getElementById('calcBtn').textContent = t('calcList');
+  document.getElementById('clearBtn').textContent = t('clearList');
+  document.getElementById('rawTitle').textContent = t('rawTitle');
+  document.getElementById('raw-empty').textContent = t('rawEmpty');
+  document.getElementById('langEn').classList.toggle('active', lang === 'en');
+  document.getElementById('langPt').classList.toggle('active', lang === 'pt');
+  renderList();
+  if(lastRaw !== null && lastMid !== null){
+    render(lastRaw, lastMid);
+  }
+}
+
+document.getElementById('langEn').addEventListener('click', () => { lang = 'en'; applyLang(); });
+document.getElementById('langPt').addEventListener('click', () => { lang = 'pt'; applyLang(); });
+
 /* ---------- ui ---------- */
 const itemInput = document.getElementById('item');
 const qtyInput = document.getElementById('qty');
@@ -1278,6 +1352,7 @@ const errEl = document.getElementById('err');
 const allKeys = Object.keys(R).sort();
 const itemList = [];
 renderList();
+applyLang();
 
 function matchKey(k, q){
   if(k.includes(q)) return true;
@@ -1306,7 +1381,7 @@ function calcSingle(){
 
   if(!key){ return; }
   if(!R[key]){
-    errEl.textContent = `item "${key}" nao encontrado na base de receitas.`;
+    errEl.textContent = t('errNotFound', key);
     render({}, {});
     return;
   }
@@ -1361,7 +1436,7 @@ function renderList(){
 
   itemList.forEach((entry, idx) => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td class="name">${label(entry.item)}</td><td class="qty">${entry.qty}</td><td class="rm"><button type="button" data-idx="${idx}">remover</button></td>`;
+    tr.innerHTML = `<td class="name">${label(entry.item)}</td><td class="qty">${entry.qty}</td><td class="rm"><button type="button" data-idx="${idx}">${t('remove')}</button></td>`;
     listBody.appendChild(tr);
   });
 
@@ -1376,7 +1451,7 @@ function renderList(){
 document.getElementById('calcBtn').addEventListener('click', () => {
   errEl.textContent = '';
   if(itemList.length === 0){
-    errEl.textContent = 'adicione ao menos um item na lista antes de calcular.';
+    errEl.textContent = t('errEmptyList');
     return;
   }
   const raw = {};
