@@ -41,16 +41,24 @@ recolor-an-existing-one. ~1076 items total.
 
 usage
 -----
-    open index.html or go to https://mvster1.github.io/mc-resource-calc/
+locally:
+    open index.html
 
-no. really. that's the whole install procedure. no npm, no pip, no
-docker, no port to forward.
+    no build, no server, no deps. just open the file.
 
-	1. type an item name, underscores or spaces both work
-	2. type a quantity
-	3. calcular       -> shows that item's direct recipe
-	   adicionar a lista -> queues it instead
-	4. calcular lista -> sums every queued item into one table
+or use the github page (same file, hosted):
+    https://mvster1.github.io/mc-resource-calc/
+
+either way the procedure is identical:
+
+    1. type an item name, underscores or spaces both work
+    2. type a quantity
+    3. calculate        -> shows that item's direct recipe
+       add to list      -> queues it instead
+    4. calculate list   -> sums every queued item into one table
+
+the footer switches the interface language between en and
+pt-br on the fly (default: en).
 
 structure
 ---------
