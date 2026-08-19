@@ -27,7 +27,7 @@ data
 ----
 recipes are not hand-typed. they are parsed directly from vanilla's
 own data generator output (data/minecraft/recipe/*.json, the same
-files the game itself ships) — crafting_shaped, crafting_shapeless,
+files the game itself ships): crafting_shaped, crafting_shapeless,
 smelting/blasting/smoking/campfire_cooking, stonecutting, and
 smithing_transform. brewing and the cosmetic special-case recipes
 (banner duplication, firework stars, map extending, ...) are left out
