@@ -8,7 +8,7 @@ what it does
 ------------
 you name an item and a quantity, it tells you the exact ingredients the
 vanilla crafting recipe requires, scaled to that quantity. that's it. it
-does not walk the full tree down to raw ores by default — it shows the
+does not walk the full tree down to raw ores by default, it shows the
 recipe as it exists in the crafting table, one level, same as the game.
 
 you can also queue several items into a list and get the combined total
@@ -36,7 +36,7 @@ on purpose, they don't belong in a materials calculator.
 where the source data disagreed with itself (an item craftable two
 different ways, or a reverse "uncraft the block back into ingots"
 recipe competing with the real one) the parser picks the canonical
-path — mined ore over decorative block, built-from-scratch over
+path: mined ore over decorative block, built-from-scratch over
 recolor-an-existing-one. ~1076 items total.
 
 usage
