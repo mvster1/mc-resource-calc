@@ -7,9 +7,12 @@ dependencies, no framework, no server. open it and it works.
 what it does
 ------------
 you name an item and a quantity, it tells you the exact ingredients the
-vanilla crafting recipe requires, scaled to that quantity. that's it. it
-does not walk the full tree down to raw ores by default, it shows the
-recipe as it exists in the crafting table, one level, same as the game.
+vanilla crafting recipe requires, scaled to that quantity. craftable
+ingredients expand into a tree showing every level down to raw
+materials, each row carrying its own required quantity. clicking a
+craftable ingredient jumps to its own recipe, keeping the quantity it
+needed here. when an ingredient is shared by several branches, a
+summary at the bottom lists it once with the combined total.
 
 you can also queue several items into a list and get the combined total
 across all of them in one pass.
@@ -53,9 +56,14 @@ either way the procedure is identical:
 
     1. type an item name, underscores or spaces both work
     2. type a quantity
-    3. calculate        -> shows that item's direct recipe
+    3. calculate        -> shows that item's recipe tree
        add to list      -> queues it instead
     4. calculate list   -> sums every queued item into one table
+
+in the results, any craftable ingredient is clickable: it replaces the
+current recipe with its own, using the quantity it contributed to the
+previous one. shared ingredients are totalled in the summary below the
+tree (en: summary, pt-br: resumo).
 
 the footer switches the interface language between en and
 pt-br on the fly (default: en).
@@ -70,12 +78,11 @@ item name in the R{} object and edit the number.
 
 philosophy
 ----------
-this project follows the suckless (suckless.org) and werc
-(werc.cat-v.org) approach to software: do one thing, keep the whole
-thing readable in one sitting, prefer deleting code to adding a
-config flag for it. a resource calculator does not need a framework,
-a package.json, or an api. it needs an item name, a number, and
-arithmetic.
+this project follows the suckless (suckless.org) approach to software:
+do one thing, keep the whole thing readable in one sitting, prefer
+deleting code to adding a config flag for it. a resource calculator
+does not need a framework, a package.json, or an api. it needs an item
+name, a number, and arithmetic.
 
 	the more code you have removed, the more progress you have made.
 
