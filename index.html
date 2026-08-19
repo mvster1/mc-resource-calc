@@ -87,7 +87,19 @@
   td{padding:4px 0;font-size:13px;}
   td.qty{text-align:right;color:var(--acc);font-variant-numeric:tabular-nums;width:180px;white-space:nowrap;}
   td.name{color:var(--fg);}
+  td.name .craft{cursor:pointer;}
+  td.name .craft:hover{color:var(--acc2);text-decoration:underline;}
   tr.raw td.qty{color:var(--acc2);}
+  tr.raw.sub td.name{color:var(--dim);}
+  tr.raw.sub td.qty{color:var(--dim);}
+  tr.raw.sum td{color:var(--dim);}
+  tr.raw.sum td.qty{color:var(--dim);}
+  tr.raw.sumtitle td{
+    padding-top:10px;
+    font-size:11px;
+    color:var(--fg);
+    border-top:1px solid var(--border);
+  }
   .empty{color:var(--dim);font-size:12px;}
   td.rm{width:70px;text-align:right;}
   td.rm button{
@@ -150,7 +162,7 @@
 </section>
 
 <footer>
-  <a href="https://werc.cat-v.org/" target="_blank" rel="noopener" class="lang-opt">powered by werc.</a>
+  <span>powered by necessity.</span>
   <span>lang: <span class="lang-opt active" id="langEn">en</span> / <span class="lang-opt" id="langPt">pt-br</span></span>
 </footer>
 
@@ -1275,12 +1287,69 @@ function render(raw, mid){
 
   document.getElementById('raw-empty').style.display = rawKeys.length ? 'none' : 'block';
 
-  for(const k of rawKeys){
-    const tr = document.createElement('tr');
-    tr.className = 'raw';
-    tr.innerHTML = `<td class="name">${label(k)}</td><td class="qty">${formatQty(raw[k])}</td>`;
-    rawBody.appendChild(tr);
+  const roots = rawKeys.map(k => buildTree(k, raw[k], new Set()));
+
+  const totals = {};
+  const occ = {};
+  for(const root of roots) summarizeTree(root, totals, occ);
+  for(const root of roots) renderTree(rawBody, root, 0);
+
+  const shared = Object.keys(occ).filter(k => occ[k] > 1).sort();
+  if(shared.length){
+    const th = document.createElement('tr');
+    th.className = 'raw sumtitle';
+    th.innerHTML = `<td colspan="2">${t('summary')}</td>`;
+    rawBody.appendChild(th);
+    for(const k of shared){
+      const tr = document.createElement('tr');
+      tr.className = 'raw sum';
+      tr.innerHTML = `<td class="name">${label(k)}</td><td class="qty">${formatQty(totals[k])}</td>`;
+      rawBody.appendChild(tr);
+    }
   }
+
+  rawBody.querySelectorAll('span.craft').forEach(el => {
+    el.addEventListener('click', () => {
+      itemInput.value = label(el.dataset.key);
+      qtyInput.value = el.dataset.qty;
+      calcSingle();
+    });
+  });
+}
+
+function buildTree(key, qty, visited){
+  const node = {key, qty, children: []};
+  if(R[key] && !visited.has(key)){
+    const next = new Set(visited);
+    next.add(key);
+    const recipe = R[key];
+    const crafts = Math.ceil(qty / recipe.output);
+    for(const ing in recipe.ingredients){
+      node.children.push(buildTree(ing, recipe.ingredients[ing] * crafts, next));
+    }
+  }
+  return node;
+}
+
+function summarizeTree(node, totals, occ){
+  totals[node.key] = (totals[node.key] || 0) + node.qty;
+  occ[node.key] = (occ[node.key] || 0) + 1;
+  node.children.forEach(c => summarizeTree(c, totals, occ));
+}
+
+function renderTree(tbody, node, depth){
+  const nameHtml = R[node.key]
+    ? `<span class="craft" data-key="${node.key}" data-qty="${node.qty}">${label(node.key)}</span>`
+    : label(node.key);
+  const tr = document.createElement('tr');
+  tr.className = depth > 0 ? 'raw sub' : 'raw';
+  const pad = depth > 0 ? ` style="padding-left:${depth * 18}px"` : '';
+  tr.innerHTML = `<td class="name"${pad}>${nameHtml}</td><td class="qty">${formatQty(node.qty)}</td>`;
+  tbody.appendChild(tr);
+
+  node.children.forEach(child => {
+    renderTree(tbody, child, depth + 1);
+  });
 }
 
 /* ---------- i18n ---------- */
@@ -1299,7 +1368,8 @@ const I18N = {
     errNotFound: 'item "{0}" not found in recipes.',
     errEmptyList: 'add at least one item to the list before calculating.',
     stack1: 'stack',
-    stacks: 'stacks'
+    stacks: 'stacks',
+    summary: 'summary'
   },
   pt: {
     placeholder: 'nome do item (ex: iron_pickaxe)',
@@ -1315,7 +1385,8 @@ const I18N = {
     errNotFound: 'item "{0}" nao encontrado na base de receitas.',
     errEmptyList: 'adicione ao menos um item na lista antes de calcular.',
     stack1: 'pilha',
-    stacks: 'pilhas'
+    stacks: 'pilhas',
+    summary: 'resumo'
   }
 };
 
